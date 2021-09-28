@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8787:8787"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13.4
+    restart: always
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pw
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8085:8080"
+
+volumes:
+  db-data:
