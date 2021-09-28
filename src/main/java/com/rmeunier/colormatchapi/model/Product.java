@@ -1,4 +1,4 @@
-package com.rmeunier.model;
+package com.rmeunier.colormatchapi.model;
 
 public class Product {
     private String id;
