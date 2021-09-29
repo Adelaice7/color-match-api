@@ -1,7 +1,7 @@
-version: '3.1'
+version: '3'
 
 services:
-  api:
+  app:
     build:
       context: .
       dockerfile: docker/api/Dockerfile
@@ -10,21 +10,32 @@ services:
       - "8787:8787"
     depends_on:
       - db
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCEC_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCEC_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO}
 
   db:
     image: postgres:13.4
+    container_name: db
     restart: always
     volumes:
       - "db-data:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pw
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
 
   adminer:
     image: adminer
     restart: always
     ports:
-      - "8085:8080"
+      - "9090:8080"
+    depends_on:
+      - db
 
 volumes:
   db-data:

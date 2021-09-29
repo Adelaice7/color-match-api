@@ -1,3 +1,4 @@
 FROM adoptopenjdk/openjdk11
-COPY ./target/*.jar service.jar
-ENTRYPOINT ["java", "-jar", "service.jar"]
+EXPOSE 8080
+COPY ./target/*.war service.war
+ENTRYPOINT ["java", "-jar", "service.war"]
