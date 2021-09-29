@@ -1,12 +1,34 @@
 package com.rmeunier.colormatchapi.model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "product")
 public class Product {
+
+    @Id
+    @Column(name = "id", length = 20, nullable = false)
     private String id;
+
+    @Column(name = "title", length = 100, nullable = false)
     private String title;
+
+    @Column(name = "gender_id", columnDefinition = "varchar(3)")
     private GenderId genderId;
+
+    @Column(length = 20)
     private String composition;
+
+    @Column(length = 20)
     private String sleeve;
-    private String photo;
+
+    @Column(name = "photo", length = 150)
+    private String path;
+
+    @Column(length = 200)
     private String url;
 
     public String getId() {
@@ -49,12 +71,12 @@ public class Product {
         this.sleeve = sleeve;
     }
 
-    public String getPhoto() {
-        return photo;
+    public String getPath() {
+        return path;
     }
 
-    public void setPhoto(String photo) {
-        this.photo = photo;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getUrl() {
