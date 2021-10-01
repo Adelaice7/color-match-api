@@ -9,4 +9,6 @@ public interface IProductService {
     void saveProduct(Product product);
     boolean saveProduct(String id, String title, String genderId,
                         String composition, String sleeve, String photo, String url);
+
+    void loadProductsFromFile();
 }

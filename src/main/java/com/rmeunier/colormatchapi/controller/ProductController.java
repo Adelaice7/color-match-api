@@ -1,6 +1,5 @@
 package com.rmeunier.colormatchapi.controller;
 
-import com.rmeunier.colormatchapi.dao.ProductRepository;
 import com.rmeunier.colormatchapi.model.Product;
 import com.rmeunier.colormatchapi.service.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,5 +17,10 @@ public class ProductController {
     @GetMapping("/products")
     public List<Product> getProducts() {
         return productService.findAll();
+    }
+
+    @GetMapping("/loadProducts")
+    public void loadProducts() {
+        productService.loadProductsFromFile();
     }
 }
