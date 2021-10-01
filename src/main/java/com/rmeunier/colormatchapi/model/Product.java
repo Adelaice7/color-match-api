@@ -31,6 +31,21 @@ public class Product {
     @Column(length = 200)
     private String url;
 
+    public Product() {
+        // empty
+    }
+
+    public Product(String id, String title, GenderId genderId,
+                   String composition, String sleeve, String path, String url) {
+        this.id = id;
+        this.title = title;
+        this.genderId = genderId;
+        this.composition = composition;
+        this.sleeve = sleeve;
+        this.path = path;
+        this.url = url;
+    }
+
     public String getId() {
         return id;
     }
