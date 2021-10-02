@@ -1,5 +1,7 @@
 package com.rmeunier.colormatchapi.model;
 
+import com.sun.istack.NotNull;
+
 import javax.persistence.*;
 
 @Entity
@@ -7,9 +9,11 @@ import javax.persistence.*;
 public class Product {
 
     @Id
+    @NotNull
     @Column(name = "id", length = 20, nullable = false)
     private String id;
 
+    @NotNull
     @Column(name = "title", length = 100, nullable = false)
     private String title;
 
