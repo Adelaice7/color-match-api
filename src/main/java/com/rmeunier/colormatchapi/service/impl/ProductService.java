@@ -7,6 +7,8 @@ import com.rmeunier.colormatchapi.service.IProductService;
 import com.rmeunier.colormatchapi.utils.FileLoaderUtils;
 import com.rmeunier.colormatchapi.utils.FilePathLoader;
 import org.apache.commons.lang3.EnumUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,8 @@ import java.util.Scanner;
 
 @Service
 public class ProductService implements IProductService {
+
+    private static Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     @Autowired
     private ProductRepository productRepository;
@@ -58,8 +62,9 @@ public class ProductService implements IProductService {
     //TODO batch processing
     @Override
     public void importProductsFromFilePath(String filePath) {
+        logger.info("Starting import of CSV file from filepath: {}...", filePath);
+
         loaderUtils = new FilePathLoader();
-        System.out.println(filePath);
 
         try (FileInputStream inputStream = (FileInputStream) loaderUtils.loadFile(filePath);
              Scanner sc = new Scanner(inputStream, StandardCharsets.UTF_8)) {
@@ -80,8 +85,7 @@ public class ProductService implements IProductService {
                 throw sc.ioException();
             }
         } catch (IOException e) {
-            System.err.println("Could not load file to import!");
-            System.err.println(e.getMessage());
+            logger.error("Could not load file to import! Error: {}", e.getMessage());
         }
     }
 
