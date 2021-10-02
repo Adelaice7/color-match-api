@@ -10,5 +10,5 @@ public interface IProductService {
     boolean saveProduct(String id, String title, String genderId,
                         String composition, String sleeve, String photo, String url);
 
-    void loadProductsFromFile();
+    void importProductsFromFilePath(String file);
 }

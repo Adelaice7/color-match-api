@@ -16,7 +16,7 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-#      - SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      - FILE_UPLOAD_DIR=${FILE_UPLOAD_DIR}
 
   db:
     image: postgres:13.4
