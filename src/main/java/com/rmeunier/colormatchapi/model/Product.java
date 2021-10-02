@@ -1,9 +1,6 @@
 package com.rmeunier.colormatchapi.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "product")
@@ -16,6 +13,7 @@ public class Product {
     @Column(name = "title", length = 100, nullable = false)
     private String title;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender_id", columnDefinition = "varchar(3)")
     private GenderId genderId;
 
@@ -100,5 +98,18 @@ public class Product {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    @Override
+    public String toString() {
+        return "Product {" +
+                "id='" + id + '\'' +
+                ", title='" + title + '\'' +
+                ", genderId=" + genderId +
+                ", composition='" + composition + '\'' +
+                ", sleeve='" + sleeve + '\'' +
+                ", path='" + path + '\'' +
+                ", url='" + url + '\'' +
+                '}';
     }
 }
