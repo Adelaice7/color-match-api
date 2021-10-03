@@ -32,7 +32,7 @@ public class ProductService implements IProductService {
     private FileLoaderUtils loaderUtils;
 
     @Value("${file.delim:,}")
-    private static String DELIM;
+    private String DELIM;
 
     @Override
     public List<Product> findAll() {
