@@ -8,6 +8,8 @@ The REST API has multiple endpoints for handling the products.
 ### Product API endpoints
 1. `/importProducts` is a REST API endpoint for importing the products from a CSV file.
 It takes a file path String, in simple plain text format from the Response Body.
+The format *must* include the extension of the file. Example:
+`/usr/api-service/res/products_test.csv`
 
 ### Tech
 I used Java 11 with Spring Boot for creating a REST API for this application.
