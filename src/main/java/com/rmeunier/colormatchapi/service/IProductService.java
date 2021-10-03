@@ -7,7 +7,6 @@ import java.util.List;
 public interface IProductService {
     List<Product> findAll();
     Product findById(String id);
-    List<Product> findByName(String name);
     void saveProduct(Product product);
     boolean saveProduct(String id, String title, String genderId,
                         String composition, String sleeve, String photo, String url);

@@ -1,6 +1,7 @@
 package com.rmeunier.colormatchapi.service.impl;
 
 import com.rmeunier.colormatchapi.dao.ProductRepository;
+import com.rmeunier.colormatchapi.exception.ProductNotFoundException;
 import com.rmeunier.colormatchapi.model.GenderId;
 import com.rmeunier.colormatchapi.model.Product;
 import com.rmeunier.colormatchapi.service.IProductService;
@@ -41,17 +42,8 @@ public class ProductService implements IProductService {
 
     @Override
     public Product findById(String id) {
-        Optional<Product> prod = productRepository.findById(id);
-
-        if (prod.isEmpty()) {
-            return null;
-        }
-        return prod.get();
-    }
-
-    @Override
-    public List<Product> findByName(String name) {
-        return null;
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     @Override
@@ -131,6 +123,10 @@ public class ProductService implements IProductService {
 
         String[] parsedString = str.split(DELIM);
 
+        if (parsedString.length <= 0) {
+            return null;
+        }
+
         String id = parsedString[0];
         String title = parsedString[1];
         String genderId = parsedString[2];
@@ -143,12 +139,17 @@ public class ProductService implements IProductService {
     }
 
     private void addDomColorToDb(Product product, String color) {
-
+        product.setDominantColor(color);
+        productRepository.save(product);
     }
 
     @Override
     public String getDominantColor(Product product) {
-        return "blue";
+        String photo = product.getPhoto();
+
+        String domColor = "bleu";
+        addDomColorToDb(product, domColor);
+        return domColor;
     }
 
 }
