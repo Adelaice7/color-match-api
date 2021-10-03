@@ -10,21 +10,24 @@ import com.rmeunier.colormatchapi.utils.FilePathLoader;
 import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
 
 @Service
 public class ProductService implements IProductService {
 
-    private static Logger logger = LoggerFactory.getLogger(ProductService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductService.class);
 
     @Autowired
     private ProductRepository productRepository;
@@ -34,6 +37,12 @@ public class ProductService implements IProductService {
 
     @Value("${file.delim:,}")
     private String DELIM;
+
+    @Autowired
+    private JobLauncher jobLauncher;
+
+    @Autowired
+    private Job importProductJob;
 
     @Override
     public List<Product> findAll() {
@@ -75,38 +84,19 @@ public class ProductService implements IProductService {
     //TODO batch processing
     @Override
     public void importProductsFromFilePath(String filePath) {
-        logger.info("Starting import of CSV file from filepath: {}...", filePath);
+        LOGGER.info("Starting import of CSV file from filepath: {}...", filePath);
 
         loaderUtils = new FilePathLoader();
 
-        try (FileInputStream inputStream = (FileInputStream) loaderUtils.loadFile(filePath);
-             Scanner sc = new Scanner(inputStream, StandardCharsets.UTF_8)) {
-
-            // skipping first line for header row
-            if (sc.hasNextLine()) {
-                sc.nextLine();
-            }
-
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-
-                Product product = parseStringIntoProduct(line);
-
-                // skip product that could not be parsed
-                if (product == null) {
-                    //TODO which product?
-                    logger.error("Could not parse product!");
-                    continue;
-                }
-
-                saveProduct(product);
-            }
-
-            if (sc.ioException() != null) {
-                throw sc.ioException();
-            }
-        } catch (IOException e) {
-            logger.error("Could not load file to import! Error: {}", e.getMessage());
+        try {
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("batchJobId", System.currentTimeMillis())
+                    .addString("filePath", filePath)
+                    .toJobParameters();
+            jobLauncher.run(importProductJob, jobParameters);
+        } catch (JobExecutionAlreadyRunningException | JobRestartException
+                | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
+            LOGGER.error("Batch import could not be started! Error: {}", e.getMessage());
         }
     }
 
