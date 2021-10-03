@@ -10,12 +10,14 @@ import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 @Service
@@ -29,9 +31,27 @@ public class ProductService implements IProductService {
     @Autowired
     private FileLoaderUtils loaderUtils;
 
+    @Value("${file.delim:,}")
+    private static String DELIM;
+
     @Override
     public List<Product> findAll() {
         return productRepository.findAll();
+    }
+
+    @Override
+    public Product findById(String id) {
+        Optional<Product> prod = productRepository.findById(id);
+
+        if (prod.isEmpty()) {
+            return null;
+        }
+        return prod.get();
+    }
+
+    @Override
+    public List<Product> findByName(String name) {
+        return null;
     }
 
     @Override
@@ -57,6 +77,7 @@ public class ProductService implements IProductService {
      * Import products from a CSV file of a given file path.
      * As the processing of the file happens line by line using the Scanner,
      * it does not store the whole file in the memory, therefore memory usage will be limited.
+     *
      * @param filePath the path to the products CSV file.
      */
     //TODO batch processing
@@ -78,6 +99,14 @@ public class ProductService implements IProductService {
                 String line = sc.nextLine();
 
                 Product product = parseStringIntoProduct(line);
+
+                // skip product that could not be parsed
+                if (product == null) {
+                    //TODO which product?
+                    logger.error("Could not parse product!");
+                    continue;
+                }
+
                 saveProduct(product);
             }
 
@@ -91,29 +120,35 @@ public class ProductService implements IProductService {
 
     /**
      * Parses a single line of String from the file into a Product object.
+     *
      * @param str a single line of the CSV file
      * @return the Product object
      */
-    // TODO potential error handling!!
     private Product parseStringIntoProduct(String str) {
         if (str.length() <= 0) {
             return null;
         }
 
-        String[] parsedString = str.split(",");
+        String[] parsedString = str.split(DELIM);
 
-        Product product = new Product();
+        String id = parsedString[0];
+        String title = parsedString[1];
+        String genderId = parsedString[2];
+        String composition = parsedString[3];
+        String sleeve = parsedString[4];
+        String path = parsedString[5];
+        String url = parsedString[6];
 
-        if (parsedString.length > 0) {
-            product.setId(parsedString[0]);
-            product.setTitle(parsedString[1]);
-            product.setGenderId(GenderId.valueOf(parsedString[2]));
-            product.setComposition(parsedString[3]);
-            product.setSleeve(parsedString[4]);
-            product.setPath(parsedString[5]);
-            product.setUrl(parsedString[6]);
-        }
-
-        return product;
+        return new Product(id, title, GenderId.valueOf(genderId), composition, sleeve, path, url);
     }
+
+    private void addDomColorToDb(Product product, String color) {
+
+    }
+
+    @Override
+    public String getDominantColor(Product product) {
+        return "blue";
+    }
+
 }

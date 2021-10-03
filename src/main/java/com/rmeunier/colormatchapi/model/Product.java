@@ -33,6 +33,9 @@ public class Product {
     @Column(length = 200)
     private String url;
 
+    @Column(name = "dominant_color")
+    private String dominantColor;
+
     public Product() {
         // empty
     }
@@ -46,6 +49,18 @@ public class Product {
         this.sleeve = sleeve;
         this.path = path;
         this.url = url;
+    }
+
+    public Product(String id, String title, GenderId genderId,
+                   String composition, String sleeve, String path, String url, String dominantColor) {
+        this.id = id;
+        this.title = title;
+        this.genderId = genderId;
+        this.composition = composition;
+        this.sleeve = sleeve;
+        this.path = path;
+        this.url = url;
+        this.dominantColor = dominantColor;
     }
 
     public String getId() {
@@ -104,9 +119,17 @@ public class Product {
         this.url = url;
     }
 
+    public String getDominantColor() {
+        return dominantColor;
+    }
+
+    public void setDominantColor(String dominantColor) {
+        this.dominantColor = dominantColor;
+    }
+
     @Override
     public String toString() {
-        return "Product {" +
+        return "Product{" +
                 "id='" + id + '\'' +
                 ", title='" + title + '\'' +
                 ", genderId=" + genderId +
@@ -114,6 +137,7 @@ public class Product {
                 ", sleeve='" + sleeve + '\'' +
                 ", path='" + path + '\'' +
                 ", url='" + url + '\'' +
+                ", dominantColor='" + dominantColor + '\'' +
                 '}';
     }
 }
