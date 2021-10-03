@@ -28,7 +28,7 @@ public class Product {
     private String sleeve;
 
     @Column(name = "photo", length = 150)
-    private String path;
+    private String photo;
 
     @Column(length = 200)
     private String url;
@@ -47,7 +47,7 @@ public class Product {
         this.genderId = genderId;
         this.composition = composition;
         this.sleeve = sleeve;
-        this.path = path;
+        this.photo = path;
         this.url = url;
     }
 
@@ -58,7 +58,7 @@ public class Product {
         this.genderId = genderId;
         this.composition = composition;
         this.sleeve = sleeve;
-        this.path = path;
+        this.photo = path;
         this.url = url;
         this.dominantColor = dominantColor;
     }
@@ -103,12 +103,12 @@ public class Product {
         this.sleeve = sleeve;
     }
 
-    public String getPath() {
-        return path;
+    public String getPhoto() {
+        return photo;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setPhoto(String path) {
+        this.photo = path;
     }
 
     public String getUrl() {
@@ -135,7 +135,7 @@ public class Product {
                 ", genderId=" + genderId +
                 ", composition='" + composition + '\'' +
                 ", sleeve='" + sleeve + '\'' +
-                ", path='" + path + '\'' +
+                ", path='" + photo + '\'' +
                 ", url='" + url + '\'' +
                 ", dominantColor='" + dominantColor + '\'' +
                 '}';
