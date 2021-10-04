@@ -3,7 +3,7 @@ from faker import Faker
 
 def datagenerate(records, headers):
     fake = Faker('fr_FR')
-    with open("Fake_Product_data.csv", 'w', newline='') as csvFile:
+    with open("Fake_Product_data_200k.csv", 'w', newline='') as csvFile:
         writer = csv.DictWriter(csvFile, fieldnames=headers)
         writer.writeheader()
         
@@ -23,7 +23,7 @@ def datagenerate(records, headers):
                     })
     
 if __name__ == '__main__':
-    records = 2000000
+    records = 200000
     headers = ["id", "title", "gender_id", "composition", "sleeve", "photo", "url"]
     datagenerate(records, headers)
     print("CSV generation complete!")

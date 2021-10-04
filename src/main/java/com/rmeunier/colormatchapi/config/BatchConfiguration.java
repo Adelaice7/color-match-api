@@ -19,8 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
 @EnableBatchProcessing
@@ -53,11 +54,18 @@ public class BatchConfiguration {
         return new JobCompletionNotificationListener();
     }
 
+    /**
+     * Responsible for reading and parsing the Products from a CSV file of given filePath.
+     * filePath is received from JobParameters upon starting the job in ProductService.
+     * @param filePath the CSV file's path
+     * @return
+     */
     @StepScope
     @Bean
     public FlatFileItemReader reader(@Value("#{jobParameters['filePath']}") String filePath) {
         return new FlatFileItemReaderBuilder().name("productItemReader")
                 .resource(new FileSystemResource(filePath))
+                // Skip header line of file
                 .linesToSkip(1)
                 .delimited()
                 .names(new String[] {"id", "title", "gender_id", "composition", "sleeve", "photo", "url"})
@@ -67,24 +75,46 @@ public class BatchConfiguration {
                 .build();
     }
 
+    /**
+     * Creates the writer that writes the parsed Products into the database using the Repository.
+     * @return
+     */
     @Bean
     public RepositoryItemWriter<Product> writer() {
         return new RepositoryItemWriterBuilder<Product>()
                 .repository(productRepository).build();
     }
 
+    /**
+     * This is the step for the import job.
+     * It sets the chunk size received from the application.properties file, sets the reader and writer,
+     * as well as the taskExecutor for multi-threaded execution.
+     * @param writer
+     * @return
+     */
     @Bean
     public Step step1(RepositoryItemWriter<Product> writer) {
         return stepBuilderFactory.get("step1")
                 .<Product, Product> chunk(chunkSize)
                 .reader(reader(null))
                 .writer(writer)
+                // Multi-threaded execution
                 .taskExecutor(taskExecutor())
                 .build();
     }
 
+    /**
+     * Creates the Task Executor to use multi-threaded execution in the file processing.
+     * @return
+     */
     @Bean
-    public TaskExecutor taskExecutor() {
-        return new SimpleAsyncTaskExecutor("spring_batch");
+    public ThreadPoolTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setQueueCapacity(10);
+        executor.setQueueCapacity(3);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setThreadNamePrefix("ProductThread-");
+        return executor;
     }
 }
