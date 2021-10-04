@@ -13,11 +13,14 @@ The format *must* include the extension of the file. The API accepts paths exist
 The path is case-sensitive and has to be exact, otherwise the Batch Job cannot run properly.
 
 ### Tech
-I used Java 11 with Spring Boot for creating a REST API for this application.
-The application uses a PostgreSQL database as PostgreSQL is a great choice for dealing with CSV files.
+The application uses Java 11 with Spring Boot, to create a REST API.
+It uses a PostgreSQL database as PostgreSQL is a great choice for dealing with CSV files.
 It also uses Docker to connect the server to the database in the same container, and for easier management.
 
-The application uses multi-threading for faster and more efficient 
+The application uses multi-threading for faster and efficient processing of data.
+
+The Google Cloud Platform is accessed using the Spring GCP library. Spring GCP contains the Cloud Vision API
+which simplifies the usage of the Google Cloud Vision API.
 
 ## Instructions on running the application
 The application runs in Docker, using *docker-compose*. 
@@ -31,7 +34,7 @@ which is mounted to/copied to the container to a certain path which can be chang
 This is the directory where you put the CSV file to be imported, or the Google credentials' JSON file, for example.
 The environment variable for this path is `DOCKER_FILE_RES_DIR`.
 
-### Environment variables
+### Docker environment variables
 
 1. `DB_HOST` is the host for the database. In this Docker configuration, the host name is the same as the database
 container's name: `db`.

@@ -14,4 +14,5 @@ public interface IProductService {
     void importProductsFromFilePath(String file);
 
     String getDominantColor(Product product);
+    void getDominantColorForAllProducts();
 }

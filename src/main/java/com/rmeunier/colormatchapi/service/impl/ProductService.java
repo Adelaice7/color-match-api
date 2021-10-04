@@ -5,6 +5,7 @@ import com.rmeunier.colormatchapi.exception.ProductNotFoundException;
 import com.rmeunier.colormatchapi.model.GenderId;
 import com.rmeunier.colormatchapi.model.Product;
 import com.rmeunier.colormatchapi.service.IProductService;
+import com.rmeunier.colormatchapi.service.IVisionService;
 import com.rmeunier.colormatchapi.utils.FileLoaderUtils;
 import com.rmeunier.colormatchapi.utils.FilePathLoader;
 import org.apache.commons.lang3.EnumUtils;
@@ -31,6 +32,9 @@ public class ProductService implements IProductService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private IVisionService visionService;
 
     @Autowired
     private FileLoaderUtils loaderUtils;
@@ -133,13 +137,23 @@ public class ProductService implements IProductService {
         productRepository.save(product);
     }
 
+    /**
+     * Get dominant color for a single product.
+     *
+     * @param product the product to get the color for
+     * @return the String value of the product's dominant color
+     */
     @Override
     public String getDominantColor(Product product) {
-        String photo = product.getPhoto();
-
-        String domColor = "bleu";
+        String photoPath = product.getPhoto();
+//        String domColor = visionService.checkImageForColor(photoPath);
+        String domColor = "blue";
         addDomColorToDb(product, domColor);
         return domColor;
+    }
+
+    public void getDominantColorForAllProducts() {
+        List<Product> products = this.findAll();
     }
 
 }
