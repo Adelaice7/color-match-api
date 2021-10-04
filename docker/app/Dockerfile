@@ -1,6 +1,6 @@
 FROM adoptopenjdk/openjdk11
 EXPOSE 8080
-ENV FILE_UPLOAD_DIR=/usr/api-service/res
-COPY ./docker/res/ ${FILE_UPLOAD_DIR}
+ENV DOCKER_FILE_RES_DIR=/usr/api-service/res
+COPY ./docker/res/ ${DOCKER_FILE_RES_DIR}
 COPY ./target/*.war service.war
 ENTRYPOINT ["java", "-jar", "service.war"]

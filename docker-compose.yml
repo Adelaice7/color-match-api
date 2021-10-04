@@ -17,7 +17,8 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - FILE_UPLOAD_DIR=${FILE_UPLOAD_DIR}
+      - DOCKER_FILE_RES_DIR=${DOCKER_FILE_RES_DIR}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
 
   db:
