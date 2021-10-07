@@ -1,6 +1,8 @@
 package com.rmeunier.colormatchapi.service.impl;
 
-import com.google.cloud.vision.v1.*;
+import com.google.cloud.vision.v1.ColorInfo;
+import com.google.cloud.vision.v1.DominantColorsAnnotation;
+import com.google.cloud.vision.v1.ImageProperties;
 import com.google.type.Color;
 import com.rmeunier.colormatchapi.service.IVisionService;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ public class VisionService implements IVisionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VisionService.class);
 
-    public String checkImageForColor(String filePath) {
+    public int[] checkImageForColor(String filePath) {
         Resource imgResource = openFileForProcessing(filePath);
 //        AnnotateImageResponse response = this.cloudVisionTemplate
 //                .analyzeImage(imgResource, Feature.Type.IMAGE_PROPERTIES);
@@ -32,9 +34,11 @@ public class VisionService implements IVisionService {
 //        ImageProperties imageProperties = response.getImagePropertiesAnnotation();
 //        Color dominantColor = getDominantColors(imageProperties);
 
-        //TODO convert dominant color to L*a*b
+//        int[] rgb = {(int) dominantColor.getRed(), (int) dominantColor.getGreen(), (int) dominantColor.getBlue()};
 
-        return "red";
+        int[] rgb = {255, 0, 0};
+
+        return rgb;
     }
 
     private Resource openFileForProcessing(String filePath) {

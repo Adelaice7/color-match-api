@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -134,6 +135,8 @@ public class ProductService implements IProductService {
 
     private void addDomColorToDb(Product product, String color) {
         product.setDominantColor(color);
+        //TODO store rgb vector in db, what format?
+        // if stored in string, has to be parsed when accessing...
         productRepository.save(product);
     }
 
@@ -146,10 +149,11 @@ public class ProductService implements IProductService {
     @Override
     public String getDominantColor(Product product) {
         String photoPath = product.getPhoto();
-//        String domColor = visionService.checkImageForColor(photoPath);
-        String domColor = "blue";
-        addDomColorToDb(product, domColor);
-        return domColor;
+        int[] domColor = visionService.checkImageForColor(photoPath);
+        String domColorStr = Arrays.toString(domColor);
+//        String domColor = "blue";
+        addDomColorToDb(product, domColorStr);
+        return domColorStr;
     }
 
     public void getDominantColorForAllProducts() {

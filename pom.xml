@@ -63,25 +63,17 @@
             <artifactId>spring-boot-starter-batch</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-gcp-starter-vision</artifactId>
+        </dependency>
+
         <!-- Database dependency -->
 
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.2.24</version>
-        </dependency>
-
-        <!-- Google Vision API -->
-
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-vision</artifactId>
-            <version>2.0.13</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-gcp-starter-vision</artifactId>
         </dependency>
 
         <!-- Java related -->
