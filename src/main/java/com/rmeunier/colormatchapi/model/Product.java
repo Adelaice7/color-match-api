@@ -11,7 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @Entity
-@Table(name = "product")
+@Table(name = "product",
+        indexes = @Index(columnList = "id"))
 @TypeDefs({
         @TypeDef(
                 name = "int-array",

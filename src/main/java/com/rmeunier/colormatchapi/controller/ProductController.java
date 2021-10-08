@@ -74,14 +74,9 @@ public class ProductController {
 
     /**
      * Loads dominant colors for all products in database.
-     * Needs a boolean value for 'loadAll' to be true to run.
      */
-    @PostMapping("/loadColorForAllProducts")
-    public void loadDominantColorForAllProducts(@RequestBody boolean loadAll) {
-        if (loadAll) {
-            productService.findDominantColorForAllProducts();
-        } else {
-            LOGGER.info("Did not load the dominant colors for products.");
-        }
+    @PostMapping(value = "/loadColorForAllProducts")
+    public void loadDominantColorForAllProducts() {
+        productService.findDominantColorForAllProducts();
     }
 }

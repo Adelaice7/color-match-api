@@ -11,6 +11,15 @@ It takes a file path String, in simple plain text format from the Response Body.
 The format *must* include the extension of the file. The API accepts paths existing on the Docker container. Example:
 `/usr/api-service/res/products_test.csv`. 
 The path is case-sensitive and has to be exact, otherwise the Batch Job cannot run properly.
+2. `/getColor/{id}` retreives the dominant color stored in the database for a given product. A product id 
+is needed in the path.
+3. `/loadColor/{id}` this endpoint uses the Google Vision API to load the image from the database for 
+a given product, and find the first dominant color and save it for the product. A product id is needed in the path.
+It also checks whether a product already has a dominant color, and only loads a new one if it doesn't 
+(the value is null).
+4. `/loadColorForAllProducts` is the endpoint that loads the dominant colors for all products in the database.
+This will run the Google Vision API for the entire database. It checks all product elements and if they
+do not have an existing dominant color, it will load all of them.
 
 ### Tech
 The application uses Java 11 with Spring Boot, to create a REST API.
