@@ -2,8 +2,10 @@ package com.rmeunier.colormatchapi.service.impl;
 
 import com.rmeunier.colormatchapi.dao.ProductRepository;
 import com.rmeunier.colormatchapi.exception.ProductNotFoundException;
+import com.rmeunier.colormatchapi.exception.ResourceNotFoundException;
 import com.rmeunier.colormatchapi.model.GenderId;
 import com.rmeunier.colormatchapi.model.Product;
+import com.rmeunier.colormatchapi.model.Schema;
 import com.rmeunier.colormatchapi.service.IProductService;
 import com.rmeunier.colormatchapi.service.IVisionService;
 import com.rmeunier.colormatchapi.utils.FileLoaderUtils;
@@ -31,6 +33,9 @@ public class ProductService implements IProductService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductService.class);
 
+    @Value("${file.delim:,}")
+    private String DELIM;
+
     @Autowired
     private ProductRepository productRepository;
 
@@ -39,9 +44,6 @@ public class ProductService implements IProductService {
 
     @Autowired
     private FileLoaderUtils loaderUtils;
-
-    @Value("${file.delim:,}")
-    private String DELIM;
 
     @Autowired
     private JobLauncher jobLauncher;
@@ -86,7 +88,6 @@ public class ProductService implements IProductService {
      *
      * @param filePath the path to the products CSV file.
      */
-    //TODO batch processing
     @Override
     public void importProductsFromFilePath(String filePath) {
         LOGGER.info("Starting import of CSV file from filepath: {}...", filePath);
@@ -106,57 +107,48 @@ public class ProductService implements IProductService {
     }
 
     /**
-     * Parses a single line of String from the file into a Product object.
-     *
-     * @param str a single line of the CSV file
-     * @return the Product object
+     * Finds the dominant color of a provided product and parses it into an int array.
+     * @param product the Product to find the dominant color of.
+     * @return the dominant color's RGB vector
      */
-    private Product parseStringIntoProduct(String str) {
-        if (str.length() <= 0) {
-            return null;
-        }
-
-        String[] parsedString = str.split(DELIM);
-
-        if (parsedString.length <= 0) {
-            return null;
-        }
-
-        String id = parsedString[0];
-        String title = parsedString[1];
-        String genderId = parsedString[2];
-        String composition = parsedString[3];
-        String sleeve = parsedString[4];
-        String path = parsedString[5];
-        String url = parsedString[6];
-
-        return new Product(id, title, GenderId.valueOf(genderId), composition, sleeve, path, url);
+    public int[] getDominantColor(Product product) {
+        return product.getDominantColor();
     }
 
-    private void addDomColorToDb(Product product, String color) {
+    /**
+     * Finds a product based on provided productId and then finds the dominant color of this product.
+     * @param productId the ID of the product for finding its dominant color
+     * @return the dominant color's RGB vector
+     */
+    public int[] getDominantColor(String productId) {
+        Product product = findById(productId);
+        return getDominantColor(product);
+    }
+
+    /**
+     * Saves the RGB color vector for the dominant color of a product.
+     * @param product the product to save
+     * @param color the dominant color vector to save
+     */
+    private void addDomColorToDb(Product product, int[] color) {
         product.setDominantColor(color);
-        //TODO store rgb vector in db, what format?
-        // if stored in string, has to be parsed when accessing...
         productRepository.save(product);
     }
 
     /**
      * Get dominant color for a single product.
-     *
      * @param product the product to get the color for
      * @return the String value of the product's dominant color
      */
     @Override
-    public String getDominantColor(Product product) {
+    public String findDominantColor(Product product) throws ResourceNotFoundException {
         String photoPath = product.getPhoto();
-        int[] domColor = visionService.checkImageForColor(photoPath);
-        String domColorStr = Arrays.toString(domColor);
-//        String domColor = "blue";
-        addDomColorToDb(product, domColorStr);
-        return domColorStr;
+        int[] domColor = visionService.loadDominantColorForImage(photoPath, Schema.HTTPS);
+        addDomColorToDb(product, domColor);
+        return Arrays.toString(domColor);
     }
 
-    public void getDominantColorForAllProducts() {
+    public void findDominantColorForAllProducts() {
         List<Product> products = this.findAll();
     }
 

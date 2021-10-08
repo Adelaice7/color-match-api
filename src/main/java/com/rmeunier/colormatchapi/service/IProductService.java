@@ -1,5 +1,6 @@
 package com.rmeunier.colormatchapi.service;
 
+import com.rmeunier.colormatchapi.exception.ResourceNotFoundException;
 import com.rmeunier.colormatchapi.model.Product;
 
 import java.util.List;
@@ -13,6 +14,9 @@ public interface IProductService {
 
     void importProductsFromFilePath(String file);
 
-    String getDominantColor(Product product);
-    void getDominantColorForAllProducts();
+    int[] getDominantColor(Product product);
+    int[] getDominantColor(String productId);
+
+    String findDominantColor(Product product) throws ResourceNotFoundException;
+    void findDominantColorForAllProducts();
 }

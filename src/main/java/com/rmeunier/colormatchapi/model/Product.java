@@ -1,11 +1,23 @@
 package com.rmeunier.colormatchapi.model;
 
 import com.sun.istack.NotNull;
+import com.vladmihalcea.hibernate.type.array.IntArrayType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 import javax.persistence.*;
+import java.util.Arrays;
+import java.util.List;
 
 @Entity
 @Table(name = "product")
+@TypeDefs({
+        @TypeDef(
+                name = "int-array",
+                typeClass = IntArrayType.class
+        )
+})
 public class Product {
 
     @Id
@@ -33,8 +45,10 @@ public class Product {
     @Column(length = 200)
     private String url;
 
-    @Column(name = "dominant_color")
-    private String dominantColor;
+    @Type(type = "int-array")
+    @Column(name = "dominant_color",
+            columnDefinition = "integer[]")
+    private int[] dominantColor;
 
     public Product() {
         // empty
@@ -52,7 +66,7 @@ public class Product {
     }
 
     public Product(String id, String title, GenderId genderId,
-                   String composition, String sleeve, String path, String url, String dominantColor) {
+                   String composition, String sleeve, String path, String url, int[] dominantColor) {
         this.id = id;
         this.title = title;
         this.genderId = genderId;
@@ -119,11 +133,11 @@ public class Product {
         this.url = url;
     }
 
-    public String getDominantColor() {
+    public int[] getDominantColor() {
         return dominantColor;
     }
 
-    public void setDominantColor(String dominantColor) {
+    public void setDominantColor(int[] dominantColor) {
         this.dominantColor = dominantColor;
     }
 
@@ -137,7 +151,7 @@ public class Product {
                 ", sleeve='" + sleeve + '\'' +
                 ", path='" + photo + '\'' +
                 ", url='" + url + '\'' +
-                ", dominantColor='" + dominantColor + '\'' +
+                ", dominantColor='" + Arrays.toString(dominantColor) + '\'' +
                 '}';
     }
 }
