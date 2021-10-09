@@ -1,11 +1,26 @@
 package com.rmeunier.colormatchapi.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 
 @Component
 public class ColorProximity {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ColorProximity.class);
+
+    /**
+     * Calculates color proximity between two RGB vectors.
+     * @param rgbVector1 the first vector to compare
+     * @param rgbVector2 the second vector to compare
+     * @return the calculated distance value
+     */
     public double proximity(int[] rgbVector1, int[] rgbVector2) {
+        LOGGER.debug("RGB vector 1: {}", Arrays.toString(rgbVector1));
+        LOGGER.debug("RGB vector 2: {}", Arrays.toString(rgbVector2));
+
         float[] lab1 = rgb2lab(rgbVector1);
         float[] lab2 = rgb2lab(rgbVector2);
 
@@ -19,6 +34,10 @@ public class ColorProximity {
      * @return the L*a*b values returned in a float array.
      */
     public float[] rgb2lab(int[] rgbValues) {
+        if (rgbValues.length < 3) {
+            throw new IllegalArgumentException("Error: wrong RGB vector provided!");
+        }
+
         int R = rgbValues[0];
         int G = rgbValues[1];
         int B = rgbValues[2];

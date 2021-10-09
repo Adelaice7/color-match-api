@@ -4,4 +4,8 @@ public class ColorMissingException extends RuntimeException {
     public ColorMissingException() {
         super("Could not get dominant color for product!");
     }
+
+    public ColorMissingException(String message) {
+        super(message);
+    }
 }
