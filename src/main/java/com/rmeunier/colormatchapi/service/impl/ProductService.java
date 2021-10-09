@@ -149,10 +149,7 @@ public class ProductService implements IProductService {
         } else {
             LOGGER.info("Starting Vision API to find dominant color for product: {}", product.getId());
             String photoPath = product.getPhoto();
-            int[] domColor = visionService.loadDominantColorForImage(photoPath, Schema.HTTPS);
-//            int[] domColor = {2, 2, 2};
-//            addDomColorToDb(product, domColor);
-            return domColor;
+            return visionService.loadDominantColorForImage(photoPath, Schema.HTTPS);
         }
     }
 
@@ -161,7 +158,7 @@ public class ProductService implements IProductService {
 
         try {
             JobParameters jobParameters = new JobParametersBuilder()
-                    .addLong("batchJobId", System.currentTimeMillis())
+                    .addLong("domColorBatchJobId", System.currentTimeMillis())
                     .toJobParameters();
             jobLauncher.run(domColorJob, jobParameters);
         } catch (JobExecutionAlreadyRunningException | JobRestartException

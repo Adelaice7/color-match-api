@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
-
 public class ProductItemProcessor implements ItemProcessor<Product, Product> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductItemProcessor.class);
@@ -17,18 +15,14 @@ public class ProductItemProcessor implements ItemProcessor<Product, Product> {
     private IProductService productService;
 
     @Override
-    public Product process(Product product) throws Exception {
-
+    public Product process(Product product) {
+        // filtering existing dominant color records to be skipped
         if (product.getDominantColor() != null) {
-            return product;
+            return null;
         }
 
         int[] domColor = productService.findDominantColor(product);
-//        LOGGER.info("dom color: {}", Arrays.toString(domColor));
         product.setDominantColor(domColor);
-
-//        LOGGER.info("Product: {}", product.toString());
-        //TODO fix not all products getting processed
 
         return product;
     }

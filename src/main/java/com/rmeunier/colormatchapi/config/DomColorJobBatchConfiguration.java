@@ -4,7 +4,6 @@ import com.rmeunier.colormatchapi.dao.ProductRepository;
 import com.rmeunier.colormatchapi.model.Product;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -13,19 +12,18 @@ import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
-@EnableBatchProcessing
+//@EnableBatchProcessing
 public class DomColorJobBatchConfiguration {
 
     @Autowired
@@ -39,6 +37,10 @@ public class DomColorJobBatchConfiguration {
 
     @Autowired
     private RepositoryItemWriter<Product> databaseWriter;
+
+    @Autowired
+    @Qualifier("taskExecutor")
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @Value("${chunk-size}")
     private int chunkSize;
@@ -58,6 +60,12 @@ public class DomColorJobBatchConfiguration {
         return new DomColorJobCompletionNotificationListener();
     }
 
+    /**
+     * The RepositoryItemReader to read Product records from database using Spring JPA.
+     * The page size can be set to reasonably large for better performance,
+     * but a cursor-based reader could be a higher performing option instead.
+     * @return the RepositoryItemReader object
+     */
     @StepScope
     @Bean
     public RepositoryItemReader<Product> databaseReader() {
@@ -66,17 +74,32 @@ public class DomColorJobBatchConfiguration {
                 .name("productItemDbReader")
                 .repository(productRepository)
                 .methodName("findAll")
-                .pageSize(5)
+                .pageSize(100)
                 .sorts(sorts)
-                .name("dominantColor")
+                .saveState(false)
+                .name("dominantColorReader")
                 .build();
     }
 
+    /**
+     * The ItemProcessor for getting each read record
+     * and retrieving the dominant colors for the not null objects in db.
+     * @return the ProductItemProcessor bean
+     */
     @Bean
     public ProductItemProcessor processor() {
         return new ProductItemProcessor();
     }
 
+    /**
+     *
+     * Spring Batch Step for reading, processing and writing Product elements.
+     * It reads the Products from the database, then processes them (sets Dominant Colors)
+     * and then persists them to the database.
+     *
+     * @param databaseWriter the RepositoryItemWriter bean
+     * @return the Step object
+     */
     @Bean
     public Step domColorStep1(RepositoryItemWriter<Product> databaseWriter) {
         return stepBuilderFactory.get("domColorStep1")
@@ -84,23 +107,18 @@ public class DomColorJobBatchConfiguration {
                 .reader(databaseReader())
                 .processor(processor())
                 .writer(databaseWriter)
+                .listener(itemCountListener())
                 // Multi-threaded execution
-                .taskExecutor(domColorTaskExecutor())
+                .taskExecutor(taskExecutor)
                 .build();
     }
 
     /**
-     * Creates the Task Executor to use multi-threaded execution in the database row processing.
-     * @return the executor
+     * This is just a listener interface for counting processed items in chunks.
+     * @return the ItemCountListener
      */
     @Bean
-    public ThreadPoolTaskExecutor domColorTaskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setQueueCapacity(10);
-        executor.setQueueCapacity(3);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setThreadNamePrefix("ProductDomColThread-");
-        return executor;
+    public ItemCountListener itemCountListener() {
+        return new ItemCountListener();
     }
 }

@@ -40,25 +40,6 @@ public class ProductController {
         productService.importProductsFromFilePath(csvFilePath);
     }
 
-    @PostMapping("/setToNull")
-    public void setDomColorNull() {
-        List<Product> products = productService.findAll();
-        products.forEach(product -> {
-            if (!product.getId().equals("L1212-00-132")) {
-                product.setDominantColor(null);
-                productService.saveProduct(product);
-            }
-        });
-    }
-
-    @PostMapping("/theGoodOne")
-    public void setTheGoodOne() {
-        Product product = productService.findById("L1212-00-132");
-        int[] domColor = {27, 58, 41};
-        product.setDominantColor(domColor);
-        productService.saveProduct(product);
-    }
-
     /**
      * Retrieves the dominant color from the database for a product.
      *
@@ -89,7 +70,7 @@ public class ProductController {
             LOGGER.error("Error message: {}", e.getMessage());
         }
 
-        return "";
+        return null;
     }
 
     /**

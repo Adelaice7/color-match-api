@@ -44,6 +44,7 @@ public class ImportJobBatchConfiguration {
         return jobBuilderFactory.get("importProductJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
+                .validator(validator())
                 .flow(step1)
                 .end()
                 .build();
@@ -58,7 +59,7 @@ public class ImportJobBatchConfiguration {
      * Responsible for reading and parsing the Products from a CSV file of given filePath.
      * filePath is received from JobParameters upon starting the job in ProductService.
      * @param filePath the CSV file's path
-     * @return
+     * @return the FlatFileItemReader object to read from CSV file
      */
     @StepScope
     @Bean
@@ -75,9 +76,14 @@ public class ImportJobBatchConfiguration {
                 .build();
     }
 
+    @Bean
+    public ImportParamValidator validator() {
+        return new ImportParamValidator();
+    }
+
     /**
      * Creates the writer that writes the parsed Products into the database using the Repository.
-     * @return
+     * @return the RepositoryItemWriter object to write to db
      */
     @Bean(name = "databaseWriter")
     public RepositoryItemWriter<Product> databaseWriter() {
@@ -87,10 +93,11 @@ public class ImportJobBatchConfiguration {
 
     /**
      * This is the step for the import job.
+     * It reads the CSV file and writes the records to the database, mapped by the Product entity.
      * It sets the chunk size received from the application.properties file, sets the reader and writer,
      * as well as the taskExecutor for multi-threaded execution.
-     * @param writer
-     * @return
+     * @param writer the RepositoryWriter bean
+     * @return the batch Step
      */
     @Bean
     public Step step1(RepositoryItemWriter<Product> writer) {
@@ -105,9 +112,9 @@ public class ImportJobBatchConfiguration {
 
     /**
      * Creates the Task Executor to use multi-threaded execution in the file processing.
-     * @return
+     * @return the ThreadPoolTaskExecutor object
      */
-    @Bean
+    @Bean(name = "taskExecutor")
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
