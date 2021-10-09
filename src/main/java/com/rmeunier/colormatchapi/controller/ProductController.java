@@ -40,6 +40,25 @@ public class ProductController {
         productService.importProductsFromFilePath(csvFilePath);
     }
 
+    @PostMapping("/setToNull")
+    public void setDomColorNull() {
+        List<Product> products = productService.findAll();
+        products.forEach(product -> {
+            if (!product.getId().equals("L1212-00-132")) {
+                product.setDominantColor(null);
+                productService.saveProduct(product);
+            }
+        });
+    }
+
+    @PostMapping("/theGoodOne")
+    public void setTheGoodOne() {
+        Product product = productService.findById("L1212-00-132");
+        int[] domColor = {27, 58, 41};
+        product.setDominantColor(domColor);
+        productService.saveProduct(product);
+    }
+
     /**
      * Retrieves the dominant color from the database for a product.
      *
@@ -63,7 +82,8 @@ public class ProductController {
     public String loadDominantColorForProduct(@PathVariable("id") String id) {
         Product product = productService.findById(id);
         try {
-            return productService.findDominantColor(product);
+            int[] domColor = productService.findDominantColor(product);
+            return Arrays.toString(domColor);
         } catch (ResourceNotFoundException e) {
             LOGGER.error("An error occurred trying to get the dominant color of product: {}", id);
             LOGGER.error("Error message: {}", e.getMessage());
@@ -78,5 +98,10 @@ public class ProductController {
     @PostMapping(value = "/loadColorForAllProducts")
     public void loadDominantColorForAllProducts() {
         productService.findDominantColorForAllProducts();
+    }
+
+    @PostMapping("/getProductsOfColor")
+    public void getProductsOfColor(@PathVariable String id, int n) {
+        LOGGER.info("This is good.");
     }
 }

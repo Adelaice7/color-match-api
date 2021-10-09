@@ -8,8 +8,6 @@ import com.rmeunier.colormatchapi.model.Product;
 import com.rmeunier.colormatchapi.model.Schema;
 import com.rmeunier.colormatchapi.service.IProductService;
 import com.rmeunier.colormatchapi.service.IVisionService;
-import com.rmeunier.colormatchapi.utils.FileLoaderUtils;
-import com.rmeunier.colormatchapi.utils.FilePathLoader;
 import org.apache.commons.lang3.EnumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +41,13 @@ public class ProductService implements IProductService {
     private IVisionService visionService;
 
     @Autowired
-    private FileLoaderUtils loaderUtils;
-
-    @Autowired
     private JobLauncher jobLauncher;
 
     @Autowired
     private Job importProductJob;
+
+    @Autowired
+    private Job domColorJob;
 
     @Override
     public List<Product> findAll() {
@@ -91,8 +89,6 @@ public class ProductService implements IProductService {
     @Override
     public void importProductsFromFilePath(String filePath) {
         LOGGER.info("Starting import of CSV file from filepath: {}...", filePath);
-
-        loaderUtils = new FilePathLoader();
 
         try {
             JobParameters jobParameters = new JobParametersBuilder()
@@ -146,29 +142,38 @@ public class ProductService implements IProductService {
      * @return the String value of the product's dominant color
      */
     @Override
-    public String findDominantColor(Product product) throws ResourceNotFoundException {
+    public int[] findDominantColor(Product product) throws ResourceNotFoundException {
         if (domColorExists(product)) {
             LOGGER.info("Dominant color already exists for this product: {}", product.getId());
-            return Arrays.toString(product.getDominantColor());
+            return product.getDominantColor();
         } else {
             LOGGER.info("Starting Vision API to find dominant color for product: {}", product.getId());
             String photoPath = product.getPhoto();
             int[] domColor = visionService.loadDominantColorForImage(photoPath, Schema.HTTPS);
-            addDomColorToDb(product, domColor);
-            return Arrays.toString(domColor);
+//            int[] domColor = {2, 2, 2};
+//            addDomColorToDb(product, domColor);
+            return domColor;
         }
     }
 
-    // TODO do this in a batch job
     public void findDominantColorForAllProducts() {
         LOGGER.info("Starting to load dominant colors for all products...");
-        // this is not an option because this uses too much memory
-        List<Product> products = this.findAll();
+
+        try {
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("batchJobId", System.currentTimeMillis())
+                    .toJobParameters();
+            jobLauncher.run(domColorJob, jobParameters);
+        } catch (JobExecutionAlreadyRunningException | JobRestartException
+                | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
+            LOGGER.error("Batch processing dominant colors could not be started! Error: {}", e.getMessage());
+        }
     }
 
     /**
      * Checks if dominant color is stored in the database or not.
      * It is null if it does not exist.
+     *
      * @param product the product to check for
      * @return true if exists, false if null
      */

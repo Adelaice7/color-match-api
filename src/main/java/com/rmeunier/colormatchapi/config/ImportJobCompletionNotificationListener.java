@@ -6,9 +6,9 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 
-public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
+public class ImportJobCompletionNotificationListener extends JobExecutionListenerSupport {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobCompletionNotificationListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImportJobCompletionNotificationListener.class);
 
     @Override
     public void afterJob(JobExecution jobExecution) {

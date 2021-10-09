@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
 @EnableBatchProcessing
-public class BatchConfiguration {
+public class ImportJobBatchConfiguration {
 
     @Autowired
     public JobBuilderFactory jobBuilderFactory;
@@ -40,7 +40,7 @@ public class BatchConfiguration {
     private int chunkSize;
 
     @Bean
-    public Job importProductJob(JobCompletionNotificationListener listener, Step step1) {
+    public Job importProductJob(ImportJobCompletionNotificationListener listener, Step step1) {
         return jobBuilderFactory.get("importProductJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
@@ -50,8 +50,8 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public JobCompletionNotificationListener jobExecutionListener() {
-        return new JobCompletionNotificationListener();
+    public ImportJobCompletionNotificationListener importJobExecutionListener() {
+        return new ImportJobCompletionNotificationListener();
     }
 
     /**
@@ -62,7 +62,7 @@ public class BatchConfiguration {
      */
     @StepScope
     @Bean
-    public FlatFileItemReader reader(@Value("#{jobParameters['filePath']}") String filePath) {
+    public FlatFileItemReader fileReader(@Value("#{jobParameters['filePath']}") String filePath) {
         return new FlatFileItemReaderBuilder().name("productItemReader")
                 .resource(new FileSystemResource(filePath))
                 // Skip header line of file
@@ -79,8 +79,8 @@ public class BatchConfiguration {
      * Creates the writer that writes the parsed Products into the database using the Repository.
      * @return
      */
-    @Bean
-    public RepositoryItemWriter<Product> writer() {
+    @Bean(name = "databaseWriter")
+    public RepositoryItemWriter<Product> databaseWriter() {
         return new RepositoryItemWriterBuilder<Product>()
                 .repository(productRepository).build();
     }
@@ -96,7 +96,7 @@ public class BatchConfiguration {
     public Step step1(RepositoryItemWriter<Product> writer) {
         return stepBuilderFactory.get("step1")
                 .<Product, Product> chunk(chunkSize)
-                .reader(reader(null))
+                .reader(fileReader(null))
                 .writer(writer)
                 // Multi-threaded execution
                 .taskExecutor(taskExecutor())

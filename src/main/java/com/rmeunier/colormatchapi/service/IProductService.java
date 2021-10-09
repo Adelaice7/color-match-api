@@ -17,6 +17,6 @@ public interface IProductService {
     int[] getDominantColor(Product product);
     int[] getDominantColor(String productId);
 
-    String findDominantColor(Product product) throws ResourceNotFoundException;
+    int[] findDominantColor(Product product) throws ResourceNotFoundException;
     void findDominantColorForAllProducts();
 }
