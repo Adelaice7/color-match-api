@@ -1,11 +1,13 @@
 package com.rmeunier.colormatchapi.service.impl;
 
 import com.rmeunier.colormatchapi.dao.ProductRepository;
+import com.rmeunier.colormatchapi.exception.ColorMissingException;
 import com.rmeunier.colormatchapi.exception.ProductNotFoundException;
 import com.rmeunier.colormatchapi.exception.ResourceNotFoundException;
 import com.rmeunier.colormatchapi.model.GenderId;
 import com.rmeunier.colormatchapi.model.Product;
 import com.rmeunier.colormatchapi.model.Schema;
+import com.rmeunier.colormatchapi.service.ColorProximity;
 import com.rmeunier.colormatchapi.service.IProductService;
 import com.rmeunier.colormatchapi.service.IVisionService;
 import org.apache.commons.lang3.EnumUtils;
@@ -23,8 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService implements IProductService {
@@ -39,6 +41,9 @@ public class ProductService implements IProductService {
 
     @Autowired
     private IVisionService visionService;
+
+    @Autowired
+    private ColorProximity colorProximity;
 
     @Autowired
     private JobLauncher jobLauncher;
@@ -153,6 +158,11 @@ public class ProductService implements IProductService {
         }
     }
 
+    /**
+     * Calls the Spring Batch job to load all records from database,
+     * then call the Vision API on all Product items that have null for the value of dominantColor.
+     * Saves the found dominant colors for each product.
+     */
     public void findDominantColorForAllProducts() {
         LOGGER.info("Starting to load dominant colors for all products...");
 
@@ -165,6 +175,35 @@ public class ProductService implements IProductService {
                 | JobInstanceAlreadyCompleteException | JobParametersInvalidException e) {
             LOGGER.error("Batch processing dominant colors could not be started! Error: {}", e.getMessage());
         }
+    }
+
+    private List<Product> findProductsOfClosestColor(int[] color, int n) {
+        List<Product> products = this.findAll();
+
+        products = products.stream()
+                .filter(this::domColorExists)
+                // TODO sort products based on dom color?
+                .filter(product -> {
+                    int[] domColorOfProduct = product.getDominantColor();
+
+                    double colorProximity = this.colorProximity.proximity(color, domColorOfProduct);
+                    double colorDistance = Math.abs(colorProximity);
+
+                    return colorDistance >= 0;
+                }).limit(n)
+                .collect(Collectors.toList());
+
+        return products;
+    }
+
+    public List<Product> getProductsOfColorLike(Product product, int n) {
+        int[] domColor = product.getDominantColor();
+
+        if (!domColorExists(product)) {
+            throw new ColorMissingException("No dominant color exists for product: " + product.getId());
+        }
+
+        return findProductsOfClosestColor(domColor, n);
     }
 
     /**

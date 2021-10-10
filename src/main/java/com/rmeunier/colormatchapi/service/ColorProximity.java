@@ -13,6 +13,7 @@ public class ColorProximity {
 
     /**
      * Calculates color proximity between two RGB vectors.
+     *
      * @param rgbVector1 the first vector to compare
      * @param rgbVector2 the second vector to compare
      * @return the calculated distance value
@@ -24,7 +25,8 @@ public class ColorProximity {
         float[] lab1 = rgb2lab(rgbVector1);
         float[] lab2 = rgb2lab(rgbVector2);
 
-        return Math.sqrt(Math.pow(lab1[0]-lab2[0],2) + Math.pow(lab1[1]-lab2[1],2) + Math.pow(lab1[2]-lab2[2],2));
+        return Math.sqrt(Math.pow(lab1[0] - lab2[0], 2)
+                + Math.pow(lab1[1] - lab2[1], 2) + Math.pow(lab1[2] - lab2[2], 2));
     }
 
     /**

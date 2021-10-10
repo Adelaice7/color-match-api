@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -81,8 +82,22 @@ public class ProductController {
         productService.findDominantColorForAllProducts();
     }
 
-    @PostMapping("/getProductsOfColor")
-    public void getProductsOfColor(@PathVariable String id, int n) {
-        LOGGER.info("This is good.");
+    /**
+     * Retrieves an n-element list of products that have the closest color to reference product provided in id.
+     * @param id the product ID to reference the color on
+     * @param n the number of products to retrieve
+     * @return a list of filtered list of Products
+     */
+    @PostMapping("/getProductsOfColor/{id}/{n}")
+    public List<Product> getProductsOfColor(@PathVariable("id") String id, @PathVariable("n") int n) {
+        LOGGER.info("Getting products that have a color like product: {}", id);
+
+        Product product = productService.findById(id);
+
+        if (product == null || n <= 0) {
+            return new ArrayList<>();
+        }
+
+        return productService.getProductsOfColorLike(product, n);
     }
 }
