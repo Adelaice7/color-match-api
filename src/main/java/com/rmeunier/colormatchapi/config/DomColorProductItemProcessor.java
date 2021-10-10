@@ -18,8 +18,6 @@ public class DomColorProductItemProcessor implements ItemProcessor<Product, Prod
     @Override
     public Product process(Product product) {
         // filtering existing dominant color records to be skipped
-        LOGGER.info("Product read: {}", product.getId());
-
         if (product.getDominantColor() != null) {
             return null;
         }

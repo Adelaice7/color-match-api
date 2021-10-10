@@ -73,7 +73,6 @@ public class DomColorJobBatchConfiguration {
      * but a cursor-based reader could be a higher performing option instead.
      * @return the RepositoryItemReader object
      */
-//    @StepScope
     @Bean
     @StepScope
     public RepositoryItemReader<Product> databaseReader() {
