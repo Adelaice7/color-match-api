@@ -19,4 +19,6 @@ public interface IProductService {
 
     int[] findDominantColor(Product product) throws ResourceNotFoundException;
     void findDominantColorForAllProducts();
+
+    List<Product> getProductsOfColorLike(Product product, int n);
 }

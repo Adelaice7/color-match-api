@@ -46,6 +46,10 @@ public class VisionService implements IVisionService {
     public int[] loadDominantColorForImage(String filePath, Schema schema) throws ResourceNotFoundException {
         Resource imgResource = getImageResourceFromUrl(filePath, schema);
 
+        if (imgResource == null) {
+            throw new ResourceNotFoundException(filePath);
+        }
+
         if (!imgResource.exists()) {
             LOGGER.error("An error occurred during loading of image resource!");
             throw new ResourceNotFoundException(filePath);

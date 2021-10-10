@@ -88,7 +88,8 @@ public class ImportJobBatchConfiguration {
     @Bean(name = "databaseWriter")
     public RepositoryItemWriter<Product> databaseWriter() {
         return new RepositoryItemWriterBuilder<Product>()
-                .repository(productRepository).build();
+                .repository(productRepository)
+                .build();
     }
 
     /**
@@ -104,10 +105,16 @@ public class ImportJobBatchConfiguration {
         return stepBuilderFactory.get("step1")
                 .<Product, Product> chunk(chunkSize)
                 .reader(fileReader(null))
+                .processor(importProcessor())
                 .writer(writer)
                 // Multi-threaded execution
                 .taskExecutor(taskExecutor())
                 .build();
+    }
+
+    @Bean
+    public ImportProductItemProcessor importProcessor() {
+        return new ImportProductItemProcessor();
     }
 
     /**
@@ -118,8 +125,8 @@ public class ImportJobBatchConfiguration {
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
-        executor.setQueueCapacity(10);
-        executor.setQueueCapacity(3);
+        executor.setMaxPoolSize(11);
+        executor.setQueueCapacity(6);
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.setThreadNamePrefix("ProductThread-");
         return executor;

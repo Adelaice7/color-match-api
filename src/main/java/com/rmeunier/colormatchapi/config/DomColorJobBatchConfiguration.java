@@ -2,6 +2,8 @@ package com.rmeunier.colormatchapi.config;
 
 import com.rmeunier.colormatchapi.dao.ProductRepository;
 import com.rmeunier.colormatchapi.model.Product;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -19,12 +21,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import javax.sql.DataSource;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-//@EnableBatchProcessing
 public class DomColorJobBatchConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DomColorJobBatchConfiguration.class);
 
     @Autowired
     public JobBuilderFactory jobBuilderFactory;
@@ -39,6 +44,9 @@ public class DomColorJobBatchConfiguration {
     private RepositoryItemWriter<Product> databaseWriter;
 
     @Autowired
+    private DataSource dataSource;
+
+    @Autowired
     @Qualifier("taskExecutor")
     private ThreadPoolTaskExecutor taskExecutor;
 
@@ -50,8 +58,7 @@ public class DomColorJobBatchConfiguration {
         return jobBuilderFactory.get("domColorJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
-                .flow(domColorStep1)
-                .end()
+                .start(domColorStep1)
                 .build();
     }
 
@@ -66,10 +73,12 @@ public class DomColorJobBatchConfiguration {
      * but a cursor-based reader could be a higher performing option instead.
      * @return the RepositoryItemReader object
      */
-    @StepScope
+//    @StepScope
     @Bean
+    @StepScope
     public RepositoryItemReader<Product> databaseReader() {
         Map<String, Sort.Direction> sorts = new HashMap<>();
+        sorts.put("id", Sort.Direction.ASC);
         return new RepositoryItemReaderBuilder<Product>()
                 .name("productItemDbReader")
                 .repository(productRepository)
@@ -87,8 +96,8 @@ public class DomColorJobBatchConfiguration {
      * @return the ProductItemProcessor bean
      */
     @Bean
-    public ProductItemProcessor processor() {
-        return new ProductItemProcessor();
+    public DomColorProductItemProcessor processor() {
+        return new DomColorProductItemProcessor();
     }
 
     /**
@@ -101,7 +110,7 @@ public class DomColorJobBatchConfiguration {
      * @return the Step object
      */
     @Bean
-    public Step domColorStep1(RepositoryItemWriter<Product> databaseWriter) {
+    public Step domColorStep1(RepositoryItemWriter<Product> databaseWriter) throws IOException {
         return stepBuilderFactory.get("domColorStep1")
                 .<Product, Product> chunk(chunkSize)
                 .reader(databaseReader())
