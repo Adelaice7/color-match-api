@@ -1,5 +1,6 @@
 package com.rmeunier.colormatchapi.controller;
 
+import com.rmeunier.colormatchapi.exception.ColorMissingException;
 import com.rmeunier.colormatchapi.exception.ResourceNotFoundException;
 import com.rmeunier.colormatchapi.model.Product;
 import com.rmeunier.colormatchapi.service.IProductService;
@@ -64,7 +65,7 @@ public class ProductController {
     public String loadDominantColorForProduct(@PathVariable("id") String id) {
         Product product = productService.findById(id);
         try {
-            int[] domColor = productService.findDominantColor(product);
+            int[] domColor = productService.findDominantColorAndSave(product);
             return Arrays.toString(domColor);
         } catch (ResourceNotFoundException e) {
             LOGGER.error("An error occurred trying to get the dominant color of product: {}", id);
@@ -98,6 +99,15 @@ public class ProductController {
             return new ArrayList<>();
         }
 
-        return productService.getProductsOfColorLike(product, n);
+        List<Product> products = new ArrayList<>();
+
+        try {
+            products = productService.getProductsOfColorLike(product, n);
+        } catch (ColorMissingException e) {
+            LOGGER.error("Error during retrieving products of color like product {}", id);
+            LOGGER.error("Error message: {}", e.getMessage());
+        }
+
+        return products;
     }
 }

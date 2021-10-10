@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -159,6 +159,18 @@ public class ProductService implements IProductService {
     }
 
     /**
+     * Find a single product's dominant color and persist it to database.
+     *
+     * @param product the product to find the dominant color of
+     * @return the dominant color RGB vector
+     */
+    public int[] findDominantColorAndSave(Product product) {
+        int[] domColor = findDominantColor(product);
+        addDomColorToDb(product, domColor);
+        return domColor;
+    }
+
+    /**
      * Calls the Spring Batch job to load all records from database,
      * then call the Vision API on all Product items that have null for the value of dominantColor.
      * Saves the found dominant colors for each product.
@@ -177,25 +189,41 @@ public class ProductService implements IProductService {
         }
     }
 
+    /**
+     * Finds an n-element list of products that have the closest dominant color to reference product's dominant color.
+     * It filters the products from the list that have a null element.
+     *
+     * @param color the reference product's dominant color RGB vector
+     * @param n     the number of items to retrieve
+     * @return the n-long list of products that are closest in color proximity to the reference color
+     */
     private List<Product> findProductsOfClosestColor(int[] color, int n) {
         List<Product> products = this.findAll();
 
         products = products.stream()
-                .filter(this::domColorExists)
-                // TODO sort products based on dom color?
-                .filter(product -> {
-                    int[] domColorOfProduct = product.getDominantColor();
+                .filter(product -> product.getDominantColor() != null)
+                .sorted((o1, o2) -> {
+                    int[] domColorProd1 = o1.getDominantColor();
+                    int[] domColorProd2 = o2.getDominantColor();
 
-                    double colorProximity = this.colorProximity.proximity(color, domColorOfProduct);
-                    double colorDistance = Math.abs(colorProximity);
+                    double colorDistance1 = Math.abs(colorProximity.proximity(color, domColorProd1));
+                    double colorDistance2 = Math.abs(colorProximity.proximity(color, domColorProd2));
 
-                    return colorDistance >= 0;
+                    return Double.compare(colorDistance1, colorDistance2);
                 }).limit(n)
                 .collect(Collectors.toList());
 
         return products;
     }
 
+    /**
+     * Starts algorithm to find the n-length list of products that have the closest color to the reference
+     * product's dominant color. Also checks if the given product's dominant color is not null.
+     *
+     * @param product the reference product to check the color based on
+     * @param n       the number of items to return
+     * @return the n-long list of Products containing the results
+     */
     public List<Product> getProductsOfColorLike(Product product, int n) {
         int[] domColor = product.getDominantColor();
 
