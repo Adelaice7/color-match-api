@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -22,19 +21,20 @@ public class ProductController {
     @Autowired
     private IProductService productService;
 
-    @GetMapping("/products/{id}")
-    public Product getProduct(@PathVariable("id") String id) {
-        return productService.findById(id);
-    }
-
     @GetMapping("/products")
     public List<Product> getProducts() {
         return productService.findAll();
     }
 
+    @GetMapping("/products/{id}")
+    public Product getProduct(@PathVariable("id") String id) {
+        return productService.findById(id);
+    }
+
     /**
      * Imports all products from a CSV file of given file path.
      * RequestBody has to be a plain text value of the absolute file path.
+     * Upon the Batch Job finishing, the notification listener will return a message.
      * @param csvFilePath the absolute path String for the CSV file to be imported.
      */
     @PostMapping(value = "/importProducts", consumes = MediaType.TEXT_PLAIN_VALUE)
@@ -49,9 +49,8 @@ public class ProductController {
      * @return the dominant color vector in a String.
      */
     @GetMapping("/getColor/{id}")
-    public String getDominantColorForProduct(@PathVariable("id") String id) {
-        int[] domColor = productService.getDominantColor(id);
-        return Arrays.toString(domColor);
+    public int[] getDominantColorForProduct(@PathVariable("id") String id) {
+        return productService.getDominantColor(id);
     }
 
     /**
@@ -62,16 +61,14 @@ public class ProductController {
      * @return the dominant color vector in a String
      */
     @PostMapping("/loadColor/{id}")
-    public String loadDominantColorForProduct(@PathVariable("id") String id) {
+    public int[] loadDominantColorForProduct(@PathVariable("id") String id) {
         Product product = productService.findById(id);
         try {
-            int[] domColor = productService.findDominantColorAndSave(product);
-            return Arrays.toString(domColor);
+            return productService.findDominantColorAndSave(product);
         } catch (ResourceNotFoundException e) {
             LOGGER.error("An error occurred trying to get the dominant color of product: {}", id);
             LOGGER.error("Error message: {}", e.getMessage());
         }
-
         return null;
     }
 

@@ -129,6 +129,9 @@ I was able to achieve 500ms on average with processing the records here.
 There are many smaller things that could use improving, or just a different approach. With little experience in such
 projects, I cannot guarantee it will be a flawless processing of items.
 
+For the database, I have a named, virtual volume storing the data. This can be changed to a directory 
+on the host machine if you want access to the data directly. 
+
 ## Instructions on running the application
 
 The application runs in Docker, using *docker-compose*. 

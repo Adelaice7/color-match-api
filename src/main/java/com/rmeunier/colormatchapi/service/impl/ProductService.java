@@ -166,6 +166,11 @@ public class ProductService implements IProductService {
      */
     public int[] findDominantColorAndSave(Product product) {
         int[] domColor = findDominantColor(product);
+
+        if (domColor == null) {
+            throw new ColorMissingException("Could not find dominant color for product: " + product.getId());
+        }
+
         addDomColorToDb(product, domColor);
         return domColor;
     }
@@ -197,7 +202,7 @@ public class ProductService implements IProductService {
      * @param n     the number of items to retrieve
      * @return the n-long list of products that are closest in color proximity to the reference color
      */
-    private List<Product> findProductsOfClosestColor(int[] color, int n) {
+    private List<Product> findProductsOfClosestColor(String id, int[] color, int n) {
         List<Product> products = this.findAll();
 
         products = products.stream()
@@ -210,7 +215,10 @@ public class ProductService implements IProductService {
                     double colorDistance2 = Math.abs(colorProximity.proximity(color, domColorProd2));
 
                     return Double.compare(colorDistance1, colorDistance2);
-                }).limit(n)
+                })
+                // filtering out original, reference product from the list
+                .filter(product -> !id.equals(product.getId()))
+                .limit(n)
                 .collect(Collectors.toList());
 
         return products;
@@ -231,7 +239,7 @@ public class ProductService implements IProductService {
             throw new ColorMissingException("No dominant color exists for product: " + product.getId());
         }
 
-        return findProductsOfClosestColor(domColor, n);
+        return findProductsOfClosestColor(product.getId(), domColor, n);
     }
 
     /**
