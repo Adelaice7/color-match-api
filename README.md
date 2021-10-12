@@ -183,6 +183,11 @@ which is mounted to/copied to the container to a certain path which can be chang
 This is the directory where you put the CSV file to be imported, or the Google credentials' JSON file, for example.
 The environment variable for this path is `DOCKER_FILE_RES_DIR`.
 
+For now, the host directory is a fixed location, it can be changed to an environment variable if needed.
+
+**Make sure that `docker/res` contains the csv file to be imported.**
+I have attached it as a sample.
+
 ### Docker environment variables
 
 1. `DB_HOST` is the host for the database. In this Docker configuration, the host name is the same as the database
