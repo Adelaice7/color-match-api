@@ -36,10 +36,8 @@ public class ProductService implements IProductService {
     @Value("${file.delim:,}")
     private String DELIM;
 
-    @Autowired
     private ProductRepository productRepository;
 
-    @Autowired
     private IVisionService visionService;
 
     @Autowired
@@ -53,6 +51,12 @@ public class ProductService implements IProductService {
 
     @Autowired
     private Job domColorJob;
+
+    @Autowired
+    public ProductService(ProductRepository productRepository, IVisionService visionService) {
+        this.productRepository = productRepository;
+        this.visionService = visionService;
+    }
 
     @Override
     public List<Product> findAll() {

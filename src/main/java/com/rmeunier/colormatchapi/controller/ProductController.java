@@ -18,8 +18,12 @@ public class ProductController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductController.class);
 
-    @Autowired
     private IProductService productService;
+
+    @Autowired
+    public ProductController(IProductService productService) {
+        this.productService = productService;
+    }
 
     @GetMapping("/products")
     public List<Product> getProducts() {

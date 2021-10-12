@@ -1,11 +1,14 @@
 # Color Match API
 
-This is an API designed to match products of similar colors.
+This is an API designed to handle products with belonging dominant colors. It is used to retrieve products that have a 
+color close to a provided product.
 
 ## API
+
 The REST API has multiple endpoints for handling the products.
 
 ### Important API endpoints
+
 1. `/importProducts` This is an endpoint for importing the products from a CSV file.
 It takes a file path String, in simple plain text format from the Response Body.
 The format *must* include the extension of the file. The API accepts paths existing on the Docker container. Example:
@@ -29,14 +32,17 @@ This needs a product `ID` and an `n` number for retrieving the `n` closest eleme
 `/getProductsOfColor/L1212-00-132/15` will retrieve the 15 products that are closest in color to the provided 
 `L1212-00-132`.
 
-### Tech
+## Tech and details of the application
+
 The application uses Java 11 with Spring Boot, to create a RESTful API to manage product colors.
-It uses a PostgreSQL database as PostgreSQL is a great choice for dealing with CSV files.
-It also uses Docker to connect the server to the database in the same container, and for easier management.
+It uses a PostgreSQL database as PostgreSQL is a great choice for dealing with CSV files and I found that I could map
+the required values the best with this database (it also supports arrays).
+The application also uses Docker to connect the server to the database in the same container, for easier management
+of environment variables and private data.
 
 There are three main parts to this application.
 
-#### Part I
+### Part I
 
 You can import products from a CSV file through a REST API endpoint. This uses a Spring Batch job
 to read the CSV file using a FlatFileItemReader and then persists them to the database. This uses a chunk-based,
@@ -67,7 +73,7 @@ but a multi-threaded implementation implies that the Batch Job cannot be restart
 it will not be able to pick up from where it left off. As a solution, Spring Batch could be replaced with better
 alternatives, such as Apache Spark.
 
-#### Part II
+### Part II
 
 I have implemented the usage of the Google Vision API with the help of Spring GCP. Using the `/loadColorForAllProducts`
 endpoint, it starts a Batch job to read the data from the database, then run the Vision API algorithm on each image path,
@@ -99,7 +105,7 @@ dominant color already. I did not go quite enough into this, I think this could 
 
 For this, I have added an index to the `Product` entity's ID, to speed things up slightly.
 
-#### Part III
+### Part III
 
 The final API. The endpoint `/getProductsOfColor/{id}/{n}` retrieves an n-element list of Products,
 that have the closest color proximity to the product provided in `id`.
@@ -115,11 +121,14 @@ to a L * a * b one, I went by the basis of the color being of the sRGB profile a
 to achieve the best, natural looking grays. 
 The implementation for this is in `ColorProximity`.
 
-In the current state, I think this has an O(n) Big O annotation but it could be improved by also implementing 
+In the current state, I think this has an O(n) Big O annotation, but it could be improved by also implementing 
 multi-threaded, more scalable options here. Because of the pay-per-use nature of Google Vision API,
 I was not able to test this on very large sets of data, apart from the provided product catalog.
 
-#### Other comments
+Another idea for improving this algorithm is indexing the database by the dominant color stored. I tried indexing
+the ID values, however.
+
+### Other comments
 
 Upon using the Google Vision API on all records in the database, I have come up with 133 skipped items
 because of the lack of a working image path, and it took overall 5m 13s 128ms. This needs improving, but I think
@@ -127,10 +136,39 @@ at this point, the performance might be halted by the Vision API itself, as with
 I was able to achieve 500ms on average with processing the records here.
 
 There are many smaller things that could use improving, or just a different approach. With little experience in such
-projects, I cannot guarantee it will be a flawless processing of items.
+projects, I cannot guarantee it will be a flawless processing of items. Multiple API endpoints could be added,
+as well as the model improved, by e.g. adding a customized type of ID generation to it. The `Product` model currently 
+has no auto-generated ID as adding new products from scratch was not a required feature.
 
-For the database, I have a named, virtual volume storing the data. This can be changed to a directory 
-on the host machine if you want access to the data directly. 
+The REST API responses could use improvements too. As I found no way to request JSON data for the main API endpoint,
+I have decided to just go with a URI-based one, this is why there's only path variables used. Custom errors could
+also be added, to avoid confusing the user.
+
+For the database, I useed a named, virtual volume storing the data, this volume is called `db-data`.
+
+### Testing
+
+I have manually tested the application for various cases.
+
+I tried scenarios where I would give wrong input data:
+
+1. `/getProductsOfColor/L13awr2-00-132/3` results in HTTP Status code 500, and an internal error 
+of ProductNotFoundException.
+2. `/getProductsOfColor/L1312-00-132` results in HTTP Status code 404 as no such path exists.
+3. `/getColor/5` results in HTTP Status code 500, and an internal error of ProductNotFoundException.
+4. Wrong URL in image path: does not process it, the exception is thrown to the Spring Batch configuration,
+in which the ItemProcessor filters out the record from being processed.
+
+As I was originally using field injection throughout the application, this did not allow mocking the beans. 
+I have refactored the dependency injection in the services and controller, but I did not do the tests. 
+I attempted mock testing, but it did not work quite as I'd expected it. I've tried unit and integral testing, 
+but I ended up not including them.
+
+There might be some issues with the restarting of the Spring Batch job.
+
+I have also discovered that upon changing the data source for the PostgreSQL database in *docker-compose*,
+if it is set to a directory on the host machine, there are issues with the database initialization,
+which causes the application to quit, as it cannot connect. I did not go into further detail on this issue for now.
 
 ## Instructions on running the application
 
@@ -171,3 +209,18 @@ This will initialize the database and the server and start up the application.
 
 After this, you can use the REST API to import a products list and perform actions on it. I have used Postman
 to test the endpoints.
+
+### Backup data, restoration
+
+I have created a backup SQL file of all the stored data and inserts in the database (including the Spring Batch tables)
+from PostgreSQL, this SQL file can be found in the root folder, under the name `backup_inserts.sql`.
+
+This SQL file stores all the data imported from the CSV file, including the dominant colors.
+
+To restore it, use the following command:
+`cat backup_inserts.sql | docker exec -it {postgres_container_id} psql -U {postgres_user}` where the 
+*postgres_container_id* can be retrieved from Docker, and the *postgres_user* is the username you have set in the 
+`.env` file. 
+
+Retrieve the *postgres_container_id* by using the command `docker ps -a` to find all running containers, and finding
+the PostgreSQL container's ID from the result list when the container is running.
